@@ -21,31 +21,26 @@ class ImageToWordModel(OnnxInferenceModel):
 
         return text
 
-
 if __name__ == "__main__":
     import pandas as pd
     from tqdm import tqdm
     from mltu.configs import BaseModelConfigs
-    
-    configs = BaseModelConfigs.load("Models/1_image_to_word/202211270035/configs.yaml")
+
+    configs = BaseModelConfigs.load("Models/02_captcha_to_text/202212211205/configs.yaml")
 
     model = ImageToWordModel(model_path=configs.model_path, char_list=configs.vocab)
 
-    df = pd.read_csv("Models/1_image_to_word/202211270035/val.csv").dropna().values.tolist()
+    df = pd.read_csv("Models/02_captcha_to_text/202212211205/val.csv").values.tolist()
 
     accum_cer = []
-    for image_path, label in tqdm(df[:20]):
+    for image_path, label in tqdm(df):
         image = cv2.imread(image_path.replace("\\", "/"))
 
-        try:
-            prediction_text = model.predict(image)
+        prediction_text = model.predict(image)
 
-            cer = get_cer(prediction_text, label)
-            print(f"Image: {image_path}, Label: {label}, Prediction: {prediction_text}, CER: {cer}")
+        cer = get_cer(prediction_text, label)
+        print(f"Image: {image_path}, Label: {label}, Prediction: {prediction_text}, CER: {cer}")
 
-        except:
-            continue
-        
         accum_cer.append(cer)
 
     print(f"Average CER: {np.average(accum_cer)}")
